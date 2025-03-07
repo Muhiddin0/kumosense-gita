@@ -7,18 +7,21 @@ def get_repo():
 
 def get_diff():
     repo = get_repo()
-    return repo.git.diff()
+    # Staged o‘zgarishlarni ham qo‘shish
+    return repo.git.diff() + "\n" + repo.git.diff("--cached")
 
 
 def commit_git(message):
     repo = get_repo()
     repo.git.add(A=True)
     repo.index.commit(message)
-    print(f"✅ AI commit yaratildi va push qilindi:\n\n{message}")
+    # "push qilindi" olib tashlandi
+    print(f"✅ AI commit yaratildi:\n\n{message}")
 
 
 def commit_and_push_git(message):
     repo = get_repo()
     commit_git(message)
-    repo.remote(name="origin")
+    origin = repo.remote(name="origin")
+    origin.push()  # Push qilish kerak
     print("✅ O'zgarishlar GitHub'ga push qilindi.")
