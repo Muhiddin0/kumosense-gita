@@ -5,8 +5,6 @@ import time
 from .git_helper import get_diff, commit_and_push_git, commit_git
 from .commit import generate_commit_message
 
-# Loading animatsiyasi uchun funksiya
-
 
 def show_loading(stop_event):
     """Loading animatsiyasini konsolda ko‘rsatish"""
@@ -18,7 +16,8 @@ def show_loading(stop_event):
         sys.stdout.flush()
         idx += 1
         time.sleep(0.1)
-    sys.stdout.write("\r" + " " * 50 + "\r")  # Ekranni tozalash
+    # Ekranni tozalash
+    sys.stdout.write("\r" + " " * 50 + "\r")
     sys.stdout.flush()
 
 
@@ -33,18 +32,18 @@ def cli():
 @click.option('--use-sticker', is_flag=True, help="Commit xabari oldiga emoji yoki sticker qo'shish")
 def commit(push, use_sticker):
     """AI tomonidan avtomatik commit yozish"""
-
     diff = get_diff()
 
     if not diff.strip():
-        print("❌ Hech qanday o'zgarish topilmadi. Commit kerak emas.")
+        click.echo("❌ Hech qanday o'zgarish topilmadi. Commit kerak emas.")
         return
 
     # Thread uchun stop event
     stop_event = threading.Event()
 
     # Loading animatsiyasini alohida threadda ishga tushirish
-    loading_thread = threading.Thread(target=show_loading, args=(stop_event,))
+    loading_thread = threading.Thread(
+        target=show_loading, args=(stop_event,), daemon=True)
     loading_thread.start()
 
     # AI modeldan commit xabarini olish
@@ -52,9 +51,14 @@ def commit(push, use_sticker):
         message = generate_commit_message(
             changes=diff, use_sticker=use_sticker)
     except ValueError as e:
-        stop_event.set()  # Loadingni to‘xtatish
-        loading_thread.join()  # Threadni kutish
-        print(f"❌ AI commit yaratishda xatolik {e}")
+        stop_event.set()
+        loading_thread.join()
+        click.echo(f"❌ AI commit yaratishda xatolik: {e}")
+        return
+    except Exception as e:
+        stop_event.set()
+        loading_thread.join()
+        click.echo(f"❌ Kutilmagan xatolik: {e}")
         return
 
     # Loadingni to‘xtatish
@@ -62,7 +66,7 @@ def commit(push, use_sticker):
     loading_thread.join()
 
     # Commit xabarini ko‘rsatish va amalni bajarish
-    print(f"✅ Generated commit message: {message}")
+    click.echo(f"✅ Generated commit message: {message}")
     if push:
         commit_and_push_git(message)
     else:
