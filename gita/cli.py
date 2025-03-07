@@ -1,31 +1,31 @@
 import click
-import itertools
+import threading
 import sys
 import time
-import threading
 from .git_helper import get_diff, commit_and_push_git, commit_git
 from .commit import generate_commit_message
+
+# Loading animatsiyasi uchun funksiya
+
+
+def show_loading(stop_event):
+    """Loading animatsiyasini konsolda ko‘rsatish"""
+    animation = "|/-\\"
+    idx = 0
+    while not stop_event.is_set():
+        sys.stdout.write(
+            f"\r⏳ AI commit xabarini generatsiya qilmoqda... {animation[idx % len(animation)]}")
+        sys.stdout.flush()
+        idx += 1
+        time.sleep(0.1)
+    sys.stdout.write("\r" + " " * 50 + "\r")  # Ekranni tozalash
+    sys.stdout.flush()
 
 
 @click.group()
 def cli():
     """Gita - AI yordamida avtomatik commit yozish CLI"""
     pass
-
-
-def loading_animation(event):
-    """Yuklanish animatsiyasini ko'rsatadi."""
-    animation = itertools.cycle(
-        ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
-
-    while not event.is_set():
-        sys.stdout.write(f"\r🤖 AI model yuklanmoqda... {next(animation)} ")
-        sys.stdout.flush()
-        time.sleep(0.1)
-
-    # Tozalash uchun bo'sh joy qo'shildi
-    sys.stdout.write("\r✅ AI model yuklandi!          \n")
-    sys.stdout.flush()
 
 
 @click.command()
@@ -40,24 +40,29 @@ def commit(push, use_sticker):
         print("❌ Hech qanday o'zgarish topilmadi. Commit kerak emas.")
         return
 
-    # AI Model API chaqirishdan oldin animatsiya boshlash
+    # Thread uchun stop event
     stop_event = threading.Event()
-    loader_thread = threading.Thread(
-        target=loading_animation, args=(stop_event,))
-    loader_thread.start()
+
+    # Loading animatsiyasini alohida threadda ishga tushirish
+    loading_thread = threading.Thread(target=show_loading, args=(stop_event,))
+    loading_thread.start()
 
     # AI modeldan commit xabarini olish
     try:
         message = generate_commit_message(
             changes=diff, use_sticker=use_sticker)
     except ValueError as e:
+        stop_event.set()  # Loadingni to‘xtatish
+        loading_thread.join()  # Threadni kutish
         print(f"❌ AI commit yaratishda xatolik {e}")
         return
 
-    # Animatsiyani to'xtatish
+    # Loadingni to‘xtatish
     stop_event.set()
-    loader_thread.join()
+    loading_thread.join()
 
+    # Commit xabarini ko‘rsatish va amalni bajarish
+    print(f"✅ Generated commit message: {message}")
     if push:
         commit_and_push_git(message)
     else:
