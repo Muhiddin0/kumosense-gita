@@ -2,13 +2,35 @@ from g4f.client import Client
 
 client = Client()
 
-def generate_commit_message(changes):
+
+def generate_commit_message(changes: str, use_sticker: bool = False) -> str:
+    """
+    Git commit uchun AI yordamida commit xabarini generatsiya qiladi.
+
+    Args:
+        changes (str): Git o'zgarishlar diff ma'lumoti.
+        use_sticker (bool): Agar True bo'lsa, commitga emoji yoki sticker qo'shiladi.
+
+    Returns:
+        str: AI tomonidan generatsiya qilingan commit xabari.
+    """
+    if not changes.strip():
+        raise ValueError("O'zgarishlar bo'sh bo'lishi mumkin emas.")
+
+    system_prompt = "Sen git uchun O'zbekcha commit message yozadigan AI botisan."
+    if use_sticker:
+        system_prompt += " Emoji yoki sticker bilan commitni yanada aniqroq va chiroyliroq yoz."
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "Sen git uchun O'zbekcha commit message yozadigan AI bot san."},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"Mana koddagi o‘zgarishlar:\n{changes}\nYaxshi commit yoz."}
         ],
         web_search=False
     )
-    return response.choices[0].message.content
+
+    try:
+        return response.choices[0].message.content.strip()
+    except (AttributeError, IndexError):
+        raise RuntimeError("AI javobida kutilmagan xatolik yuz berdi.")
