@@ -1,4 +1,9 @@
 from g4f.client import Client
+import asyncio
+
+if asyncio.get_event_loop().is_closed():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
 
 client = Client()
 

@@ -51,7 +51,7 @@ def commit(push, use_sticker):
         message = generate_commit_message(
             changes=diff, use_sticker=use_sticker)
     except ValueError as e:
-        print(f"❌ {e}")
+        print(f"❌ AI commit yaratishda xatolik {e}")
         return
 
     # Animatsiyani to'xtatish
