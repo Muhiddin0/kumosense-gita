@@ -1,4 +1,6 @@
 import click
+from .git_helper import get_diff, commit_and_push
+from .commit import generate_commit_message
 
 @click.group()
 def cli():
@@ -9,17 +11,21 @@ def cli():
 @click.option('--push', is_flag=True, help="Commitdan keyin avtomatik push qilish")
 def commit(push):
     """AI tomonidan avtomatik commit yozish"""
+    
+    diff = get_diff()
+
+    if not diff.strip():
+        print("❌ Hech qanday o'zgarish topilmadi. Commit kerak emas.")
+        return
+
     # AI Model API chaqirish logikasi
-    commit_message = "AI yozgan commit xabari"  # Bu yerga haqiqiy AI model kodini qo‘shish kerak
-
-    # Git commit
-    import subprocess
-    subprocess.run(["git", "commit", "-m", commit_message])
-
+    message = generate_commit_message(diff)  # Bu yerga haqiqiy AI model kodini qo‘shish kerak
+    
+    commit_and_push(message)
+        
     if push:
-        subprocess.run(["git", "push"])
+        print("✅ O'zgarishlar GitHub'ga push qilindi.")
 
-    click.echo(f"✅ Commit bajarildi: {commit_message}")
 
 cli.add_command(commit)
 
