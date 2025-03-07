@@ -5,9 +5,6 @@ if asyncio.get_event_loop().is_closed():
     asyncio.set_event_loop(asyncio.new_event_loop())
 
 
-client = Client()
-
-
 def generate_commit_message(changes: str, use_sticker: bool = False) -> str:
     """
     Git commit uchun AI yordamida commit xabarini generatsiya qiladi.
@@ -21,6 +18,8 @@ def generate_commit_message(changes: str, use_sticker: bool = False) -> str:
     """
     if not changes.strip():
         raise ValueError("O'zgarishlar bo'sh bo'lishi mumkin emas.")
+
+    client = Client()
 
     system_prompt = "Sen git uchun O'zbekcha commit message yozadigan AI botisan."
     if use_sticker:
