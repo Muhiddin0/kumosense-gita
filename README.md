@@ -1,4 +1,4 @@
-### **📌 Gita – AI yordamida avtomatik commit yozish**
+﻿### **📌 Gita – AI yordamida avtomatik commit yozish**
 
 **Gita** - bu **Git** uchun **commit xabarlarini AI orqali avtomatik generatsiya qiluvchi CLI vosita**.
 
@@ -53,8 +53,6 @@ gita commit --push --use-sticker
 1️⃣ **AI commit yaratadi** – Git dagi o‘zgarishlarni **AI baholaydi** va **mos commit yozadi**  
 2️⃣ **Commit bajariladi** – AI tomonidan yaratilgan commit xabari Git-ga **commit** qilinadi  
 3️⃣ **(Ixtiyoriy) Push qilinadi** – Agar `--push` bayrog‘i qo‘shilgan bo‘lsa, **Git push** avtomatik bajariladi
-
----
 
 ---
 
